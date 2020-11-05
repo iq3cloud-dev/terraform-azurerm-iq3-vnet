@@ -15,113 +15,311 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # For questions and contributions please contact info@iq3cloud.com
-# https://github.com/iq3cloud-dev/terraform-azurerm-iq3-aks
+# https://github.com/iq3cloud-dev/terraform-azurerm-iq3-vnet
 
-provider "kubernetes" {
-  version                = "~>1.10.0"
-  host                   = azurerm_kubernetes_cluster.kubernetes.kube_config.0.host
-  client_certificate     = base64decode(azurerm_kubernetes_cluster.kubernetes.kube_config.0.client_certificate)
-  client_key             = base64decode(azurerm_kubernetes_cluster.kubernetes.kube_config.0.client_key)
-  cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.kubernetes.kube_config.0.cluster_ca_certificate)
-  load_config_file       = false
+locals {
+  rule_default_prefix = "iq3"
+  nsg_name            = "DefaultNSG"
 }
 
-provider "helm" {
-  kubernetes {
-    host                   = azurerm_kubernetes_cluster.kubernetes.kube_config.0.host
-    client_certificate     = base64decode(azurerm_kubernetes_cluster.kubernetes.kube_config.0.client_certificate)
-    client_key             = base64decode(azurerm_kubernetes_cluster.kubernetes.kube_config.0.client_key)
-    cluster_ca_certificate = base64decode(azurerm_kubernetes_cluster.kubernetes.kube_config.0.cluster_ca_certificate)
-    load_config_file       = false
+resource "azurerm_network_security_group" "vnet_nsg" {
+  name                = "${var.vnet_name}-${local.nsg_name}"
+  location            = data.azurerm_resource_group.vnet_rg.location
+  resource_group_name = data.azurerm_resource_group.vnet_rg.name
+}
+
+# Common ASG's:
+
+resource "azurerm_application_security_group" "quarantine" {
+  name                = "${var.vnet_name}_Quarantine"
+  location            = data.azurerm_resource_group.vnet_rg.location
+  resource_group_name = data.azurerm_resource_group.vnet_rg.name
+}
+
+resource "azurerm_application_security_group" "internet_out" {
+  name                = "${var.vnet_name}_InternetOut"
+  location            = data.azurerm_resource_group.vnet_rg.location
+  resource_group_name = data.azurerm_resource_group.vnet_rg.name
+}
+
+resource "azurerm_application_security_group" "linux_customer_access" {
+  name                = "${var.vnet_name}_LinuxCustomerAccess"
+  location            = data.azurerm_resource_group.vnet_rg.location
+  resource_group_name = data.azurerm_resource_group.vnet_rg.name
+}
+
+resource "azurerm_application_security_group" "on_prem_out" {
+  name                = "${var.vnet_name}_OnPremOut"
+  location            = data.azurerm_resource_group.vnet_rg.location
+  resource_group_name = data.azurerm_resource_group.vnet_rg.name
+}
+
+resource "azurerm_application_security_group" "sqlserver" {
+  name                = "${var.vnet_name}_Sqlserver"
+  location            = data.azurerm_resource_group.vnet_rg.location
+  resource_group_name = data.azurerm_resource_group.vnet_rg.name
+}
+
+resource "azurerm_application_security_group" "webserver" {
+  name                = "${var.vnet_name}_Webserver"
+  location            = data.azurerm_resource_group.vnet_rg.location
+  resource_group_name = data.azurerm_resource_group.vnet_rg.name
+}
+
+resource "azurerm_application_security_group" "windows_customer_access" {
+  name                = "${var.vnet_name}_WindowsCustomerAccess"
+  location            = data.azurerm_resource_group.vnet_rg.location
+  resource_group_name = data.azurerm_resource_group.vnet_rg.name
+}
+
+
+# Common NSG Rules:
+
+resource "azurerm_network_security_rule" "ssh_rdp_in_management" {
+  name                        = "SshRdpIn_Management"
+  priority                    = 400
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "*"
+  source_port_range           = "*"
+  destination_port_ranges     = ["22", "3389"]
+  source_address_prefix       = var.iq3_management_ip_range
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = data.azurerm_resource_group.vnet_rg.name
+  network_security_group_name = azurerm_network_security_group.vnet_nsg.name
+}
+
+resource "azurerm_network_security_rule" "quarantine_inbound_new_zone" {
+  name                                       = "Quarantine_Inbound_newZone"
+  priority                                   = 403
+  direction                                  = "Inbound"
+  access                                     = "Deny"
+  protocol                                   = "*"
+  source_port_range                          = "*"
+  destination_port_range                     = "*"
+  source_address_prefix                      = "*"
+  destination_application_security_group_ids = [azurerm_application_security_group.quarantine.id]
+  resource_group_name                        = data.azurerm_resource_group.vnet_rg.name
+  network_security_group_name                = azurerm_network_security_group.vnet_nsg.name
+}
+
+resource "azurerm_network_security_rule" "ssh_rdp_in_application" {
+  name                        = "SshRdpIn_Application"
+  priority                    = 410
+  direction                   = "Inbound"
+  access                      = "Deny"
+  protocol                    = "*"
+  source_port_range           = "*"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "VirtualNetwork"
+  destination_port_ranges     = ["22", "3389"]
+  resource_group_name         = data.azurerm_resource_group.vnet_rg.name
+  network_security_group_name = azurerm_network_security_group.vnet_nsg.name
+}
+
+resource "azurerm_network_security_rule" "ssh_in_customer_new_zone" {
+  name                                       = "SshIn_Customer_newZone"
+  priority                                   = 422
+  direction                                  = "Inbound"
+  access                                     = "Allow"
+  protocol                                   = "*"
+  source_port_range                          = "*"
+  destination_port_range                     = "22"
+  source_address_prefix                      = "VirtualNetwork"
+  resource_group_name                        = data.azurerm_resource_group.vnet_rg.name
+  network_security_group_name                = azurerm_network_security_group.vnet_nsg.name
+  destination_application_security_group_ids = [azurerm_application_security_group.linux_customer_access.id]
+}
+
+resource "azurerm_network_security_rule" "rdp_in_customer_new_zone" {
+  name                                       = "RdpIn_Customer_newZone"
+  priority                                   = 432
+  direction                                  = "Inbound"
+  access                                     = "Allow"
+  protocol                                   = "*"
+  source_port_range                          = "*"
+  destination_port_range                     = "3389"
+  source_address_prefix                      = "VirtualNetwork"
+  resource_group_name                        = data.azurerm_resource_group.vnet_rg.name
+  network_security_group_name                = azurerm_network_security_group.vnet_nsg.name
+  destination_application_security_group_ids = [azurerm_application_security_group.windows_customer_access.id]
+}
+
+resource "azurerm_network_security_rule" "http_https_port_in_new_zone" {
+  name                                       = "Http_Https_Port_In_newZone"
+  priority                                   = 2012
+  direction                                  = "Inbound"
+  access                                     = "Allow"
+  protocol                                   = "*"
+  source_port_range                          = "*"
+  destination_port_ranges                    = ["80", "443"]
+  source_address_prefix                      = "*"
+  resource_group_name                        = data.azurerm_resource_group.vnet_rg.name
+  network_security_group_name                = azurerm_network_security_group.vnet_nsg.name
+  destination_application_security_group_ids = [azurerm_application_security_group.webserver.id]
+}
+
+resource "azurerm_network_security_rule" "mssql_port_in_new_zone" {
+  name                                       = "MsSql_Port_In_newZone"
+  priority                                   = 2022
+  direction                                  = "Inbound"
+  access                                     = "Allow"
+  protocol                                   = "*"
+  source_port_range                          = "*"
+  destination_port_range                     = "1433"
+  source_address_prefix                      = "VirtualNetwork"
+  resource_group_name                        = data.azurerm_resource_group.vnet_rg.name
+  network_security_group_name                = azurerm_network_security_group.vnet_nsg.name
+  destination_application_security_group_ids = [azurerm_application_security_group.sqlserver.id]
+}
+
+resource "azurerm_network_security_rule" "allow_icmp_in" {
+  name                        = "Allow_ICMP_IN"
+  priority                    = 4095
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "ICMP"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = data.azurerm_resource_group.vnet_rg.name
+  network_security_group_name = azurerm_network_security_group.vnet_nsg.name
+}
+
+resource "azurerm_network_security_rule" "allow_icmp" {
+  name                        = "Allow_ICMP"
+  priority                    = 4095
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "ICMP"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = data.azurerm_resource_group.vnet_rg.name
+  network_security_group_name = azurerm_network_security_group.vnet_nsg.name
+}
+
+resource "azurerm_network_security_rule" "deny_all_in" {
+  name                        = "DenyAllIn"
+  priority                    = 4096
+  direction                   = "Inbound"
+  access                      = "Deny"
+  protocol                    = "*"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = data.azurerm_resource_group.vnet_rg.name
+  network_security_group_name = azurerm_network_security_group.vnet_nsg.name
+}
+
+resource "azurerm_network_security_rule" "quarantine_outbound_new_zone" {
+  name                                  = "Quarantine_Outbound_newZone"
+  priority                              = 403
+  direction                             = "Outbound"
+  access                                = "Deny"
+  protocol                              = "*"
+  source_port_range                     = "*"
+  destination_port_range                = "*"
+  destination_address_prefix            = "*"
+  resource_group_name                   = data.azurerm_resource_group.vnet_rg.name
+  source_application_security_group_ids = [azurerm_application_security_group.quarantine.id]
+  network_security_group_name           = azurerm_network_security_group.vnet_nsg.name
+}
+
+resource "azurerm_network_security_rule" "internet_outbound_new_zone" {
+  name                                  = "Internet_Outbound_newZone"
+  priority                              = 413
+  direction                             = "Outbound"
+  access                                = "Allow"
+  protocol                              = "*"
+  source_port_range                     = "*"
+  destination_port_range                = "*"
+  destination_address_prefix            = "Internet"
+  resource_group_name                   = data.azurerm_resource_group.vnet_rg.name
+  source_application_security_group_ids = [azurerm_application_security_group.internet_out.id]
+  network_security_group_name           = azurerm_network_security_group.vnet_nsg.name
+}
+
+resource "azurerm_network_security_rule" "on_prem_outbound_new_zone" {
+  name                                  = "OnPrem_Outbound_NewZone"
+  priority                              = 414
+  direction                             = "Outbound"
+  access                                = "Allow"
+  protocol                              = "*"
+  source_port_range                     = "*"
+  destination_port_range                = "*"
+  destination_address_prefix            = "VirtualNetwork"
+  resource_group_name                   = data.azurerm_resource_group.vnet_rg.name
+  source_application_security_group_ids = [azurerm_application_security_group.internet_out.id]
+  network_security_group_name           = azurerm_network_security_group.vnet_nsg.name
+}
+
+resource "azurerm_network_security_rule" "azure_services_outbound" {
+  name                        = "AzureServices_Outbound"
+  priority                    = 420
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "*"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  destination_address_prefix  = "AzureCloud"
+  source_address_prefix       = "VirtualNetwork"
+  resource_group_name         = data.azurerm_resource_group.vnet_rg.name
+  network_security_group_name = azurerm_network_security_group.vnet_nsg.name
+}
+
+resource "azurerm_network_security_rule" "deny_all_out" {
+  name                        = "DenyAllOut"
+  priority                    = 4096
+  direction                   = "Outbound"
+  access                      = "DENY"
+  protocol                    = "*"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  destination_address_prefix  = "*"
+  source_address_prefix       = "*"
+  resource_group_name         = data.azurerm_resource_group.vnet_rg.name
+  network_security_group_name = azurerm_network_security_group.vnet_nsg.name
+}
+
+# virtual network
+
+resource "azurerm_virtual_network" "vnet" {
+  name                = var.vnet_name
+  address_space       = [var.vnet_ip_range]
+  location            = data.azurerm_resource_group.vnet_rg.location
+  resource_group_name = data.azurerm_resource_group.vnet_rg.name
+  dns_servers         = concat(["168.63.129.16"], var.dns_servers)
+}
+
+resource "azurerm_subnet" "subnet" {
+  name                 = each.key
+  resource_group_name  = data.azurerm_resource_group.vnet_rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = [each.value.ip_range]
+  for_each             = var.vnet_subnet_ranges
+}
+
+resource "azurerm_subnet_network_security_group_association" "nsg_association" {
+  subnet_id                 = azurerm_subnet.subnet[each.key].id
+  network_security_group_id = azurerm_network_security_group.vnet_nsg.id
+
+  for_each = {
+    for key, value in var.vnet_subnet_ranges :
+    key => value
+    if value.attach_nsg != false
   }
 }
 
-resource "azurerm_kubernetes_cluster" "kubernetes" {
-  lifecycle {
-    ignore_changes = [
-      default_node_pool[0].node_count
-    ]
-  }
-
-  name                = var.name
-  location            = data.azurerm_resource_group.resourcegroup.location
-  resource_group_name = data.azurerm_resource_group.resourcegroup.name
-  dns_prefix          = var.name
-  kubernetes_version  = var.aks_configuration.kubernetes_version
-
-  linux_profile {
-    admin_username = var.aks_node_authentication.node_admin_username
-
-    ssh_key {
-      # remove any new lines using the replace interpolation function
-      key_data = replace(var.aks_node_authentication.node_admin_ssh_public, "\n", "")
-    }
-  }
-
-  default_node_pool {
-    name                = "agentpool"
-    type                = "VirtualMachineScaleSets"
-    node_count          = var.aks_configuration.kubernetes_min_node_count
-    enable_auto_scaling = var.aks_configuration.kubernetes_enable_auto_scaling
-    min_count           = var.aks_configuration.kubernetes_min_node_count
-    max_count           = var.aks_configuration.kubernetes_max_node_count
-    vm_size             = var.aks_configuration.vm_size
-    os_disk_size_gb     = var.aks_configuration.os_disk_size_gb
-    vnet_subnet_id      = var.aks_subnet_id
-  }
-
-  network_profile {
-    network_plugin    = var.aks_configuration.network_plugin
-    network_policy    = var.aks_configuration.network_policy
-    load_balancer_sku = "basic"
-  }
-
-  role_based_access_control {
-    enabled = true
-  }
-
-  dynamic service_principal {
-    for_each = var.use_managed_identity ? [] : ["SP"]
-    content {
-      client_id     = data.azurerm_key_vault_secret.aksspid.value
-      client_secret = data.azurerm_key_vault_secret.aksspsecret.value
-    }
-  }
-
-  dynamic identity {
-    for_each = var.use_managed_identity ? ["SystemAssigned"] : []
-    content {
-      type = each.value
-    }
-  }
-
-  addon_profile {
-    oms_agent {
-      enabled                    = true
-      log_analytics_workspace_id = var.aks_addons.aks_log_analytics_workspace_id
-    }
-    kube_dashboard {
-      enabled = var.aks_addons.enable_kubernetes_dashboard
-    }
-    azure_policy {
-      enabled = var.aks_addons.enable_azure_policy
-    }
-
-  }
-}
-
-data "helm_repository" "stable" {
-  name = "stable"
-  url  = "https://kubernetes-charts.storage.googleapis.com"
-}
-
-resource "helm_release" "nginx_ingress_controller" {
-  name       = "nginx-ingress-controller"
-  repository = data.helm_repository.stable.metadata.0.name
-  chart      = "stable/nginx-ingress"
-
-  set {
-    name  = "controller.replicaCount"
-    value = 2
+resource "azurerm_subnet_route_table_association" "rt_association" {
+  subnet_id      = azurerm_subnet.subnet[each.key].id
+  route_table_id = var.routetable_resource_id
+  for_each = {
+    for key, value in var.vnet_subnet_ranges :
+    key => value
+    if var.routetable_resource_id != ""
   }
 }

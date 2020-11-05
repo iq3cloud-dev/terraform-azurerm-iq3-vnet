@@ -15,85 +15,40 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # For questions and contributions please contact info@iq3cloud.com
-# https://github.com/iq3cloud-dev/terraform-azurerm-iq3-aks
+# https://github.com/iq3cloud-dev/terraform-azurerm-iq3-vnet
 
-variable "resourcegroup" {
+variable "vnet_name" {
   type        = string
-  description = "The resource group where the aks will be located in"
+  description = "The name of the virtual network"
 }
 
-variable "name" {
+variable "iq3_management_ip_range" {
   type        = string
-  description = "name of the AKS cluster"
+  description = "The IP range of the IQ3 management virtual network"
 }
 
-variable "use_managed_identity" {
-  type        = bool
-  description = "Toggles wether the AKS is built using a managed identity (true) or a Service Principal to authenticate within Azure Cloud (false)"
+variable "vnet_ip_range" {
+  type        = string
+  description = "The IP range of the whole Virtual Network"
 }
 
-variable "aks_subnet_id" {
-  type = string
+variable "vnet_resourcegroup" {
+  type        = string
+  description = "The resource group where the virtual network and network security group will be located in"
 }
 
-variable "environment_name" {
-  type = string
+variable "dns_servers" {
+  type        = list(string)
+  description = "DNS servers to be configured for the virtual network (will be added along with the Azure Magic IP)"
 }
 
-variable "key_vault_id" {
-  type = string
+variable "vnet_subnet_ranges" {
+  type        = map
+  description = "A map of subnet names and their ranges (key: Subnet Name, Value: Subnet Range)"
 }
 
-variable "aks_configuration" {
-  description = "Defines AKS performance and size parameters"
-  type = object({
-    vm_size                        = string
-    os_disk_size_gb                = number
-    kubernetes_min_node_count      = number
-    kubernetes_max_node_count      = number
-    kubernetes_enable_auto_scaling = bool
-    network_plugin                 = string
-    network_policy                 = string
-    kubernetes_version             = string
-  })
-}
-
-variable "aks_node_authentication" {
-  description = "SSH Information to access node pool vms"
-  type = object({
-    node_admin_username   = string
-    node_admin_ssh_public = string
-  })
-}
-
-variable "aks_addons" {
-  description = "Defines which addons will be activated."
-  type = object({
-    aks_log_analytics_workspace_id   = string
-    aks_log_analytics_workspace_name = string
-    enable_kubernetes_dashboard      = bool
-    enable_azure_policy              = bool
-  })
-  default = {
-    aks_log_analytics_workspace_id   = ""
-    aks_log_analytics_workspace_name = ""
-    enable_kubernetes_dashboard      = false
-    enable_azure_policy              = false
-  }
-}
-
-##################################
-# Log Analytics
-##################################
-
-variable "log_analytics_workspace_sku" {
-  type = string
-}
-
-variable "log_retention_in_days" {
-  type = number
-}
-
-variable "loganalytics_workspace_name" {
-  type = string
+variable "routetable_resource_id" {
+  type        = string
+  default     = ""
+  description = "Resource Id of the route table to be attached to the subnets"
 }

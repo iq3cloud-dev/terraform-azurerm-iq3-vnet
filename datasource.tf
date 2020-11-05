@@ -15,18 +15,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # For questions and contributions please contact info@iq3cloud.com
-# https://github.com/iq3cloud-dev/terraform-azurerm-iq3-aks
-
-data "azurerm_resource_group" "resourcegroup" {
-  name = var.resourcegroup
-}
-
-data "azurerm_key_vault_secret" "aksspid" {
-  name         = "aks-sp-clientid"
-  key_vault_id = var.key_vault_id
-}
-
-data "azurerm_key_vault_secret" "aksspsecret" {
-  name         = "aks-sp-secret"
-  key_vault_id = var.key_vault_id
+# https://github.com/iq3cloud-dev/terraform-azurerm-iq3-vnet
+ 
+data "azurerm_resource_group" "vnet_rg" {
+  name = var.vnet_resourcegroup
 }
