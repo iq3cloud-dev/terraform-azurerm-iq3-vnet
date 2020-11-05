@@ -15,20 +15,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 # For questions and contributions please contact info@iq3cloud.com
-# https://github.com/iq3cloud-dev/terraform-azurerm-iq3-vnet
+# https://github.com/iq3cloud-dev/terraform-azurerm-iq3-aks
 
-output "vnet" {
-  value = azurerm_virtual_network.vnet
-}
-
-output "nsg" {
-  value = azurerm_network_security_group.vnet_nsg
-}
-
-output "subnets" {
-  value = azurerm_subnet.subnet
-
-  depends_on = [
-    azurerm_subnet_route_table_association.rt_association,
-  ]
+output "cluster" {
+  value = azurerm_kubernetes_cluster.kubernetes
 }
