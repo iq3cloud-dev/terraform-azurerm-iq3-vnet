@@ -292,7 +292,7 @@ resource "azurerm_virtual_network" "vnet" {
   address_space       = [var.vnet_ip_range]
   location            = data.azurerm_resource_group.vnet_rg.location
   resource_group_name = data.azurerm_resource_group.vnet_rg.name
-  dns_servers         = concat(["168.63.129.16"], var.dns_servers)
+  dns_servers         = length(var.dns_servers) == 0 ? [] : concat(var.dns_servers, ["168.63.129.16"])
 }
 
 resource "azurerm_subnet" "subnet" {
