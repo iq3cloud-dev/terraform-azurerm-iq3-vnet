@@ -142,7 +142,7 @@ resource "azurerm_network_security_rule" "http_https_port_in_new_zone" {
   source_address_prefix                      = "*"
   resource_group_name                        = data.azurerm_resource_group.vnet_rg.name
   network_security_group_name                = azurerm_network_security_group.vnet_nsg.name
-  destination_application_security_group_ids = [azurerm_application_security_group.webserver.id]
+  destination_application_security_group_ids = [azurerm_application_security_group.web_server.id]
 }
 
 resource "azurerm_network_security_rule" "mssql_port_in_new_zone" {
@@ -156,7 +156,7 @@ resource "azurerm_network_security_rule" "mssql_port_in_new_zone" {
   source_address_prefix                      = "VirtualNetwork"
   resource_group_name                        = data.azurerm_resource_group.vnet_rg.name
   network_security_group_name                = azurerm_network_security_group.vnet_nsg.name
-  destination_application_security_group_ids = [azurerm_application_security_group.sqlserver.id]
+  destination_application_security_group_ids = [azurerm_application_security_group.sql_server.id]
 }
 
 resource "azurerm_network_security_rule" "allow_icmp_in" {
