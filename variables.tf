@@ -43,7 +43,7 @@ variable "dns_servers" {
 }
 
 variable "vnet_subnet_ranges" {
-  type        = map
+  type        = map(any)
   description = "A map of subnet names and their ranges (key: Subnet Name, Value: Subnet Range)"
 }
 

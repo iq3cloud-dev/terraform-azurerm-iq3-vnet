@@ -54,13 +54,13 @@ resource "azurerm_application_security_group" "on_prem_out" {
   resource_group_name = data.azurerm_resource_group.vnet_rg.name
 }
 
-resource "azurerm_application_security_group" "sqlserver" {
+resource "azurerm_application_security_group" "sql_server" {
   name                = "${var.vnet_name}_Sqlserver"
   location            = data.azurerm_resource_group.vnet_rg.location
   resource_group_name = data.azurerm_resource_group.vnet_rg.name
 }
 
-resource "azurerm_application_security_group" "webserver" {
+resource "azurerm_application_security_group" "web_server" {
   name                = "${var.vnet_name}_Webserver"
   location            = data.azurerm_resource_group.vnet_rg.location
   resource_group_name = data.azurerm_resource_group.vnet_rg.name
