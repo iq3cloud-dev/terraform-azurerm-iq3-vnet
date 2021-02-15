@@ -103,20 +103,6 @@ resource "azurerm_network_security_rule" "quarantine_inbound_new_zone" {
   network_security_group_name                = azurerm_network_security_group.vnet_nsg.name
 }
 
-resource "azurerm_network_security_rule" "ssh_rdp_in_application" {
-  name                        = "SshRdpIn_Application"
-  priority                    = 410
-  direction                   = "Inbound"
-  access                      = "Deny"
-  protocol                    = "*"
-  source_port_range           = "*"
-  source_address_prefix       = "*"
-  destination_address_prefix  = "VirtualNetwork"
-  destination_port_ranges     = ["22", "3389"]
-  resource_group_name         = data.azurerm_resource_group.vnet_rg.name
-  network_security_group_name = azurerm_network_security_group.vnet_nsg.name
-}
-
 resource "azurerm_network_security_rule" "ssh_in_customer_new_zone" {
   name                                       = "SshIn_Customer_newZone"
   priority                                   = 422
