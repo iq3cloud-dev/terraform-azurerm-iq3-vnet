@@ -239,7 +239,7 @@ resource "azurerm_network_security_rule" "on_prem_outbound_new_zone" {
   destination_port_range                = "*"
   destination_address_prefix            = "VirtualNetwork"
   resource_group_name                   = data.azurerm_resource_group.vnet_rg.name
-  source_application_security_group_ids = [azurerm_application_security_group.internet_out.id]
+  source_application_security_group_ids = [azurerm_application_security_group.on_prem_out.id]
   network_security_group_name           = azurerm_network_security_group.vnet_nsg.name
 }
 
