@@ -282,11 +282,13 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_subnet" "subnet" {
-  name                 = each.key
-  resource_group_name  = data.azurerm_resource_group.vnet_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = [each.value.ip_range]
-  for_each             = var.vnet_subnet_ranges
+  name                                           = each.key
+  resource_group_name                            = data.azurerm_resource_group.vnet_rg.name
+  virtual_network_name                           = azurerm_virtual_network.vnet.name
+  address_prefixes                               = [each.value.ip_range]
+  service_endpoints                              = each.value.service_endpoints
+  enforce_private_link_endpoint_network_policies = each.value.apply_service_endpoint_policies
+  for_each                                       = var.vnet_subnet_ranges
 }
 
 resource "azurerm_subnet_network_security_group_association" "nsg_association" {
