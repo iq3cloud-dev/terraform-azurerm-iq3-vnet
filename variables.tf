@@ -52,3 +52,9 @@ variable "routetable_resource_id" {
   default     = ""
   description = "Resource Id of the route table to be attached to the subnets"
 }
+
+variable "virtual_network_tags" {
+  type        = map(any)
+  default     = null
+  description = "Tags to be applied to the virtual network"
+}

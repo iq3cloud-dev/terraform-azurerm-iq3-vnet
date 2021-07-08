@@ -26,6 +26,8 @@ resource "azurerm_network_security_group" "vnet_nsg" {
   name                = "${var.vnet_name}-${local.nsg_name}"
   location            = data.azurerm_resource_group.vnet_rg.location
   resource_group_name = data.azurerm_resource_group.vnet_rg.name
+
+  tags = var.virtual_network_tags
 }
 
 # Common ASG's:
@@ -34,42 +36,56 @@ resource "azurerm_application_security_group" "quarantine" {
   name                = "${var.vnet_name}_Quarantine"
   location            = data.azurerm_resource_group.vnet_rg.location
   resource_group_name = data.azurerm_resource_group.vnet_rg.name
+
+  tags = var.virtual_network_tags
 }
 
 resource "azurerm_application_security_group" "internet_out" {
   name                = "${var.vnet_name}_InternetOut"
   location            = data.azurerm_resource_group.vnet_rg.location
   resource_group_name = data.azurerm_resource_group.vnet_rg.name
+
+  tags = var.virtual_network_tags
 }
 
 resource "azurerm_application_security_group" "linux_customer_access" {
   name                = "${var.vnet_name}_LinuxCustomerAccess"
   location            = data.azurerm_resource_group.vnet_rg.location
   resource_group_name = data.azurerm_resource_group.vnet_rg.name
+
+  tags = var.virtual_network_tags
 }
 
 resource "azurerm_application_security_group" "on_prem_out" {
   name                = "${var.vnet_name}_OnPremOut"
   location            = data.azurerm_resource_group.vnet_rg.location
   resource_group_name = data.azurerm_resource_group.vnet_rg.name
+
+  tags = var.virtual_network_tags
 }
 
 resource "azurerm_application_security_group" "sql_server" {
   name                = "${var.vnet_name}_Sqlserver"
   location            = data.azurerm_resource_group.vnet_rg.location
   resource_group_name = data.azurerm_resource_group.vnet_rg.name
+
+  tags = var.virtual_network_tags
 }
 
 resource "azurerm_application_security_group" "web_server" {
   name                = "${var.vnet_name}_Webserver"
   location            = data.azurerm_resource_group.vnet_rg.location
   resource_group_name = data.azurerm_resource_group.vnet_rg.name
+
+  tags = var.virtual_network_tags
 }
 
 resource "azurerm_application_security_group" "windows_customer_access" {
   name                = "${var.vnet_name}_WindowsCustomerAccess"
   location            = data.azurerm_resource_group.vnet_rg.location
   resource_group_name = data.azurerm_resource_group.vnet_rg.name
+
+  tags = var.virtual_network_tags
 }
 
 
@@ -279,6 +295,8 @@ resource "azurerm_virtual_network" "vnet" {
   location            = data.azurerm_resource_group.vnet_rg.location
   resource_group_name = data.azurerm_resource_group.vnet_rg.name
   dns_servers         = length(var.dns_servers) == 0 ? [] : concat(var.dns_servers, ["168.63.129.16"])
+
+  tags = var.virtual_network_tags
 }
 
 resource "azurerm_subnet" "subnet" {
