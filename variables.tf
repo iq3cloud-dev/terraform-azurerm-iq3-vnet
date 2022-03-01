@@ -44,7 +44,7 @@ variable "dns_servers" {
 
 variable "vnet_subnet_ranges" {
   type        = map(any)
-  description = "A map of subnet names and their ranges (key: Subnet Name, Value: Subnet Range)"
+  description = "A map of subnet names and their ranges (key: Subnet Name, Value: Subnet Range) {\"backend-appgw\" = {\"ip_range\" = \"10.0.0.0/24\"\"attach_nsg\" = false\"service_endpoints\" = \"Microsoft.Web\",\"apply_service_endpoint_policies\" = false}}"
 }
 
 variable "routetable_resource_id" {
