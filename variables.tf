@@ -28,7 +28,7 @@ variable "iq3_management_ip_range" {
 }
 
 variable "vnet_ip_range" {
-  type        = string
+  type        = list(string)
   description = "The IP range of the whole Virtual Network"
 }
 

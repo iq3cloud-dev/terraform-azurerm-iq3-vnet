@@ -25,6 +25,10 @@ output "nsg" {
   value = azurerm_network_security_group.vnet_nsg
 }
 
+output "nsg_association" {
+  value = azurerm_subnet_network_security_group_association.nsg_association
+}
+
 output "subnets" {
   value = azurerm_subnet.subnet
 
