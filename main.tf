@@ -180,7 +180,7 @@ resource "azurerm_network_security_rule" "allow_icmp_in" {
   priority                    = 4095
   direction                   = "Inbound"
   access                      = "Allow"
-  protocol                    = "ICMP"
+  protocol                    = "Icmp"
   source_port_range           = "*"
   destination_port_range      = "*"
   source_address_prefix       = "*"
@@ -194,7 +194,7 @@ resource "azurerm_network_security_rule" "allow_icmp" {
   priority                    = 4095
   direction                   = "Outbound"
   access                      = "Allow"
-  protocol                    = "ICMP"
+  protocol                    = "Icmp"
   source_port_range           = "*"
   destination_port_range      = "*"
   source_address_prefix       = "*"
@@ -277,7 +277,7 @@ resource "azurerm_network_security_rule" "deny_all_out" {
   name                        = "DenyAllOut"
   priority                    = 4096
   direction                   = "Outbound"
-  access                      = "DENY"
+  access                      = "Deny"
   protocol                    = "*"
   source_port_range           = "*"
   destination_port_range      = "*"
