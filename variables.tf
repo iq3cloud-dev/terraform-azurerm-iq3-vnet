@@ -34,7 +34,7 @@ variable "vnet_ip_range" {
 
 variable "vnet_resourcegroup" {
   type        = string
-  description = "The resource group where the virtual network and network security group will be located in"
+  description = "The resource group where the virtual network and network security group will be located"
 }
 
 variable "dns_servers" {
@@ -44,7 +44,7 @@ variable "dns_servers" {
 
 variable "vnet_subnet_ranges" {
   type        = map(any)
-  description = "A map of subnet names and their ranges (key: Subnet Name, Value: Subnet Range). For Example see README-File"
+  description = "A map of subnet names and their ranges (key: Subnet Name, Value: Subnet Range). For examples reference the README"
 }
 
 variable "routetable_resource_id" {
